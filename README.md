@@ -1,6 +1,6 @@
 # docker-compose
 
-主要放置一些自己在学习过程中使用docker-compose启动的内容
+主要放置一些自己在学习过程中使用docker-compose启动的服务
 
 ## docker-compose命令
 * 查看docker-compose提供的所有命令
