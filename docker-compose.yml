@@ -1,0 +1,122 @@
+# reference:https://docs.docker.com/compose/compose-file/
+version: "3"
+services:
+  # two commands are equal
+  # docker run -it --rm --name redis -d -p 6379:6379 -v /docker/redis/data:/data 
+  # -v /docker/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf redis:5.0.5 redis-server /usr/local/etc/redis/redis.conf 
+  redis:
+    image: "redis:5.0.5"
+    ports: 
+      - "6379:6379"
+    container_name: redis-server  
+    restart: always
+    volumes:
+      - /home/zhangyu/docker-vm/redis/data:/data
+      - ./redis/conf/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf  
+
+  mysql:
+    image: mysql:5.7.29 
+    container_name: mysql-server  
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    ports:
+      - 3306:3306
+    volumes:
+      - /home/zhangyu/docker-vm/mysql/data:/var/lib/mysql  
+      - ./mysql/conf:/etc/mysql/conf.d
+    environment:
+      #MYSQL_ALLOW_EMPTY_PASSWORD: "yes" 
+      MYSQL_ROOT_PASSWORD: "123456"
+      MYSQL_USER: sa
+      MYSQL_PASSWORD: 
+      #MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+
+  #rabbitmq:
+  #  image: "rabbitmq:3.8.0-management"  
+  #  ports:
+  #    - "15672:15672"
+  #  volumes:
+  #    - "/docker/rabbitmq/conf/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf"  
+  #  container_name: rabbitmq  
+
+  #es01:
+  #    image: elasticsearch:6.8.6
+  #    ports: 
+  #      - 9200:9200
+  #      - 9300:9300
+  #    container_name: es01
+  #    environment:
+  #      - node.name=es01
+  #      - cluster.name=es-cluster
+  #      - discovery.type=single-node
+  #      - "ES_JAVA_OPTS=-Xms256m -Xmx512m"
+  #    volumes:
+  #      - ./es/data01:/usr/share/elasticsearch/data
+  #      #- ./es/conf/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+  #    networks:
+  #      - elastic
+
+  nacos:
+    image: nacos/nacos-server:latest
+    container_name: nacos-standalone
+    environment:
+    - PREFER_HOST_MODE=hostname
+    - MODE=standalone
+    volumes:
+    - ./nacos-docker/example/standalone-logs/:/home/nacos/logs
+    - ./nacos-docker/example/init.d/custom.properties:/home/nacos/init.d/custom.properties
+    ports:
+    - "8848:8848"
+ 
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus/prometheus-standalone.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana/conf/grafana.ini:/etc/grafana/grafana.ini
+      #- ./grafana/data:/var/lib/grafana
+  rmqnamesrv:
+    container_name: rmqnamesrv
+    image: apacherocketmq/rocketmq:4.6.0
+    ports:
+      - 9876:9876
+    #tty: true   
+    command: sh mqnamesrv 
+  rmqbroker:
+    image: apacherocketmq/rocketmq:4.6.0
+    container_name: rmqbroker
+    ports: 
+      - 10909:10909
+      - 10911:10911
+      - 10912:10912
+    volumes:
+      - ./rocketmq/broker/logs:/home/rocketmq/logs
+      - ./rocketmq/broker/store:/home/rocketmq/store
+      - ./rocketmq/broker/conf/broker.conf:/home/rocketmq/rocketmq-4.6.0/conf/broker.conf
+    command: ./mqbroker -n rmqnamesrv:9876 -c ../conf/broker.conf
+    #tty: true
+    depends_on:
+      - rmqnamesrv
+  
+  rmqconsole:
+    image: styletang/rocketmq-console-ng:latest
+    container_name: rmqconsole
+    ports:
+      - 9990:8080
+    environment:
+      JAVA_OPTS: -Drocketmq.namesrv.addr=rmqnamesrv:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false
+    depends_on:
+      - rmqbroker
+
+#networksv:
+#  elastic:
+#    driver: bridge
