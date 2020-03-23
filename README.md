@@ -2,7 +2,9 @@
 
 主要放置一些自己在学习过程中使用docker-compose启动的内容
 
-## docker-compose启动服务
+## docker-compose命令
+* 查看docker-compose提供的所有命令
+`docker-compose`
 
 * 启动所有服务
 `docker-compose up -d`
