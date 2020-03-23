@@ -11,7 +11,7 @@ services:
     container_name: redis-server  
     restart: always
     volumes:
-      - /home/zhangyu/docker-vm/redis/data:/data
+      - ./redis/data:/data
       - ./redis/conf/redis.conf:/usr/local/etc/redis/redis.conf
     command: redis-server /usr/local/etc/redis/redis.conf  
 
@@ -23,7 +23,7 @@ services:
     ports:
       - 3306:3306
     volumes:
-      - /home/zhangyu/docker-vm/mysql/data:/var/lib/mysql  
+      - ./mysql/data:/var/lib/mysql  
       - ./mysql/conf:/etc/mysql/conf.d
     environment:
       #MYSQL_ALLOW_EMPTY_PASSWORD: "yes" 
@@ -40,6 +40,7 @@ services:
   #    - "/docker/rabbitmq/conf/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf"  
   #  container_name: rabbitmq  
 
+  # elasticsearch
   #es01:
   #    image: elasticsearch:6.8.6
   #    ports: 
@@ -76,6 +77,7 @@ services:
       - ./prometheus/prometheus-standalone.yaml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
+
   grafana:
     container_name: grafana
     image: grafana/grafana:latest
@@ -84,6 +86,8 @@ services:
     volumes:
       - ./grafana/conf/grafana.ini:/etc/grafana/grafana.ini
       #- ./grafana/data:/var/lib/grafana
+ 
+  # rocket mq name server
   rmqnamesrv:
     container_name: rmqnamesrv
     image: apacherocketmq/rocketmq:4.6.0
@@ -91,6 +95,8 @@ services:
       - 9876:9876
     #tty: true   
     command: sh mqnamesrv 
+  
+  #rocket mq broker
   rmqbroker:
     image: apacherocketmq/rocketmq:4.6.0
     container_name: rmqbroker
@@ -107,6 +113,7 @@ services:
     depends_on:
       - rmqnamesrv
   
+  # rocket mq console
   rmqconsole:
     image: styletang/rocketmq-console-ng:latest
     container_name: rmqconsole
