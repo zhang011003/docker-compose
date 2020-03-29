@@ -32,13 +32,18 @@ services:
       MYSQL_PASSWORD: 
       #MYSQL_RANDOM_ROOT_PASSWORD: "yes"
 
-  #rabbitmq:
-  #  image: "rabbitmq:3.8.0-management"  
-  #  ports:
-  #    - "15672:15672"
-  #  volumes:
-  #    - "/docker/rabbitmq/conf/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf"  
-  #  container_name: rabbitmq  
+  rabbitmq:
+    image: "rabbitmq:3.8.0-management"  
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    volumes:
+      - "./rabbitmq/conf:/etc/rabbitmq/conf"  
+      - "./rabbitmq/data:/var/lib/rabbitmq"
+    container_name: rabbitmq  
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
 
   # elasticsearch
   #es01:
@@ -123,7 +128,15 @@ services:
       JAVA_OPTS: -Drocketmq.namesrv.addr=rmqnamesrv:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false
     depends_on:
       - rmqbroker
-
+  
+  portainer:
+    image: portainer/portainer:1.23.2
+    container_name: portainer
+    restart: always
+    ports: 
+      - 9000:9000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 #networksv:
 #  elastic:
 #    driver: bridge
